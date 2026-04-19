@@ -12,7 +12,7 @@ echo $($PSQL "TRUNCATE TABLE games, teams")
 cat games.csv | while IFS="," read YEAR ROUND WINNER OPPONENT WINNER_GOALS OPPONENT_GOALS
 do
   # prevent inserting headers
-  if [[ $WINNER != "winner" ]]
+  if [[ $YEAR != "year" && $ROUND != "round" && $WINNER != "winner" && $OPPONENT != "opponent" && $WINNER_GOALS != "winner_goals" && $OPPONENT_GOALS != "opponent_goals" ]]
   then
     # get winner team_id
     WINNER_TEAM_ID=$($PSQL "SELECT team_id FROM teams WHERE name='$WINNER'")
@@ -44,6 +44,12 @@ do
         # get new opponent team_id
         OPPONENT_TEAM_ID=$($PSQL "SELECT team_id FROM teams WHERE name='$OPPONENT'")
         OPPONENT_TEAM_IN_TABLE=$($PSQL "SELECT name FROM teams WHERE team_id =$OPPONENT_TEAM_ID") 
+    fi
+    # insert into games
+    INSERT_GAMES_RESULT=$($PSQL "INSERT INTO games(year, round, winner_id, opponent_id, winner_goals, opponent_goals) VALUES ($YEAR, '$ROUND', $WINNER_TEAM_ID, $OPPONENT_TEAM_ID, $WINNER_GOALS, $OPPONENT_GOALS)")
+    if [[ $INSERT_GAMES_RESULT == "INSERT 0 1" ]]
+    then
+      echo Inserted into games $INSERT_GAMES_RESULT
     fi
   fi
 done
